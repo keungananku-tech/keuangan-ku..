@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f766e">
+<title>KeuanganKu — Pengelola Keuangan</title>
+<style>
+:root{--bg:#f3f6f8;--panel:#fff;--text:#17212b;--muted:#718096;--line:#e5ebef;--primary:#0f766e;--primary2:#14b8a6;--green:#159a68;--red:#dc5454;--shadow:0 8px 28px rgba(18,38,55,.07)}
+[data-theme="dark"]{--bg:#101820;--panel:#1a2732;--text:#edf4f7;--muted:#9aabb7;--line:#30414d;--primary:#2dd4bf;--primary2:#0f766e;--green:#48d597;--red:#ff7777;--shadow:0 8px 28px rgba(0,0,0,.18)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;transition:.2s}
+header{background:linear-gradient(120deg,#115e59,#0f766e,#14b8a6);color:white;padding:25px max(18px,calc((100% - 1120px)/2));display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;gap:12px;align-items:center}.logo{width:45px;height:45px;border-radius:14px;background:#ffffff25;display:grid;place-items:center;font-size:24px}.brand h1{font-size:22px;margin:0}.brand p{margin:2px 0 0;color:#d2f5ee;font-size:13px}
+.header-actions{display:flex;gap:8px}.header-actions button{background:#ffffff20;color:white;border:1px solid #ffffff55}
+main{max-width:1120px;margin:24px auto;padding:0 18px 40px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:17px;box-shadow:var(--shadow)}
+.card{padding:18px}.card .label{color:var(--muted);font-size:13px}.card .amount{font-size:clamp(18px,2.4vw,25px);font-weight:750;margin-top:8px;overflow-wrap:anywhere}.card .emoji{float:right;font-size:21px}.income{color:var(--green)}.expense{color:var(--red)}
+.layout{display:grid;grid-template-columns: minmax(280px,.85fr) minmax(0,1.5fr);gap:16px;align-items:start}.panel{padding:20px;margin-bottom:16px}.panel h2{font-size:17px;margin:0 0 16px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:6px}.field.full{grid-column:1/-1}label{font-size:13px;color:var(--muted);font-weight:600}input,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;outline:none}input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 15%,transparent)}
+button{border:0;border-radius:10px;padding:10px 14px;background:var(--primary);color:white;font:600 14px inherit;cursor:pointer;transition:.15s}button:hover{filter:brightness(1.08);transform:translateY(-1px)}button:disabled{opacity:.5;cursor:not-allowed}.btn-wide{width:100%;margin-top:14px;padding:12px}.btn-secondary{background:var(--bg);border:1px solid var(--line);color:var(--text)}.btn-danger{background:transparent;color:var(--red);border:1px solid var(--line);padding:7px 10px}
+.budget-line{height:10px;background:var(--bg);border-radius:20px;overflow:hidden;margin:10px 0}.budget-fill{height:100%;width:0;background:var(--primary2);border-radius:20px;transition:width .3s}.budget-meta{display:flex;justify-content:space-between;gap:8px;color:var(--muted);font-size:12px}
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px}.toolbar input{flex:1;min-width:150px}.toolbar select{width:auto;min-width:125px}
+.transaction{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}.transaction:last-child{border-bottom:0}.tx-icon{width:42px;height:42px;border-radius:13px;background:var(--bg);display:grid;place-items:center;font-size:20px;flex-shrink:0}.tx-info{min-width:0;flex:1}.tx-title{font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tx-sub{font-size:12px;color:var(--muted)}.tx-right{text-align:right;white-space:nowrap}.tx-amount{font-weight:750}.empty{text-align:center;color:var(--muted);padding:28px 10px}.small-note{font-size:12px;color:var(--muted);margin-top:12px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.section-head h2{margin-bottom:0}.month-label{font-size:13px;color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 18px 28px}
+@media(max-width:800px){.cards{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}}
+@media(max-width:430px){header{padding:18px}.brand h1{font-size:19px}.panel{padding:16px}.cards{gap:9px}.card{padding:14px}.card .amount{font-size:19px}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.tx-right .btn-danger{font-size:11px;padding:6px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="logo">💰</div><div><h1>KeuanganKu</h1><p>Catat uang masuk dan keluar dengan mudah</p></div></div>
+  <div class="header-actions"><button class="btn-secondary" id="themeBtn" type="button">🌙 Mode gelap</button></div>
+</header>
+<main>
+  <section class="cards">
+    <div class="card"><span class="emoji">💳</span><div class="label">Total Saldo</div><div class="amount" id="balance">Rp0</div></div>
+    <div class="card"><span class="emoji">📈</span><div class="label">Pemasukan bulan ini</div><div class="amount income" id="income">Rp0</div></div>
+    <div class="card"><span class="emoji">📉</span><div class="label">Pengeluaran bulan ini</div><div class="amount expense" id="expense">Rp0</div></div>
+    <div class="card"><span class="emoji">🧾</span><div class="label">Sisa anggaran bulan ini</div><div class="amount" id="remaining">Belum diatur</div></div>
+  </section>
+  <div class="layout">
+    <div>
+      <section class="panel">
+        <h2>➕ Tambah transaksi</h2>
+        <form id="transactionForm">
+          <div class="form-grid">
+            <div class="field"><label for="type">Jenis transaksi</label><select id="type"><option value="income">Pemasukan</option><option value="expense">Pengeluaran</option></select></div>
+            <div class="field"><label for="date">Tanggal</label><input id="date" type="date" required></div>
+            <div class="field full"><label for="description">Keterangan</label><input id="description" maxlength="70" placeholder="Contoh: Gaji, belanja bulanan..." required></div>
+            <div class="field"><label for="category">Kategori</label><select id="category"></select></div>
+            <div class="field"><label for="amount">Jumlah (Rp)</label><input id="amount" type="number" min="1" step="1" placeholder="50000" required></div>
+          </div>
+          <button class="btn-wide" type="submit">Simpan transaksi</button>
+        </form>
+        <p class="small-note">Data tersimpan otomatis di browser perangkat ini.</p>
+      </section>
+      <section class="panel">
+        <h2>🎯 Anggaran bulanan</h2>
+        <div class="field"><label for="budget">Batas pengeluaran per bulan (Rp)</label><input id="budget" type="number" min="0" step="1000" placeholder="Contoh: 3000000"></div>
+        <button class="btn-wide" id="saveBudget" type="button">Simpan anggaran</button>
+        <div class="budget-line"><div class="budget-fill" id="budgetFill"></div></div>
+        <div class="budget-meta"><span id="budgetUsed">Belum ada anggaran</span><span id="budgetPercent">—</span></div>
+      </section>
+    </div>
+    <section class="panel">
+      <div class="section-head"><h2>📋 Riwayat transaksi</h2><span class="month-label" id="monthLabel"></span></div>
+      <div class="toolbar" style="margin-top:15px">
+        <input id="search" type="search" placeholder="Cari transaksi...">
+        <select id="filter"><option value="all">Semua jenis</option><option value="income">Pemasukan</option><option value="expense">Pengeluaran</option></select>
+        <button class="btn-secondary" id="exportBtn" type="button">⬇ CSV</button>
+      </div>
+      <div id="transactionList"><div class="empty">Belum ada transaksi. Tambahkan transaksi pertamamu.</div></div>
+    </section>
+  </div>
+</main>
+<footer>KeuanganKu • Data disimpan secara lokal di browser. Hapus data browser dapat menghapus catatan.</footer>
+<script>
+const $=id=>document.getElementById(id);
+const STORAGE_KEY='keuanganku_transactions_v1', BUDGET_KEY='keuanganku_budget_v1', THEME_KEY='keuanganku_theme_v1';
+let transactions=[];
+try{transactions=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');if(!Array.isArray(transactions))transactions=[];}catch{transactions=[];}
+let budget=Number(localStorage.getItem(BUDGET_KEY)||0);
+const today=new Date();
+const localDate=d=>{const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,10)};
+$('date').value=localDate(today);
+const monthKey=localDate(today).slice(0,7);
+$('monthLabel').textContent=today.toLocaleDateString('id-ID',{month:'long',year:'numeric'});
+const categories={
+ income:['Gaji','Bisnis','Freelance','Investasi','Hadiah','Lainnya'],
+ expense:['Makanan','Transportasi','Belanja','Tagihan','Kesehatan','Pendidikan','Hiburan','Tempat tinggal','Lainnya']
+};
+function updateCategories(){const list=categories[$('type').value];$('category').innerHTML=list.map(c=>`<option>${c}</option>`).join('');}
+$('type').addEventListener('change',updateCategories);updateCategories();
+const rupiah=n=>'Rp'+Number(n||0).toLocaleString('id-ID');
+const save=()=>localStorage.setItem(STORAGE_KEY,JSON.stringify(transactions));
+function currentMonth(){return transactions.filter(t=>t.date&&t.date.slice(0,7)===monthKey)}
+function render(){
+ const month=currentMonth(),inc=month.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0),exp=month.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+ const totalIn=transactions.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0),totalOut=transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+ $('balance').textContent=rupiah(totalIn-totalOut);$('income').textContent=rupiah(inc);$('expense').textContent=rupiah(exp);
+ $('remaining').textContent=budget?rupiah(budget-exp):'Belum diatur';
+ $('budget').value=budget||'';
+ const pct=budget?Math.min(100,exp/budget*100):0;
+ $('budgetFill').style.width=pct+'%';$('budgetFill').style.background=exp>budget?'var(--red)':'var(--primary2)';
+ $('budgetUsed').textContent=budget?`${rupiah(exp)} dari ${rupiah(budget)}`:'Belum ada anggaran';
+ $('budgetPercent').textContent=budget?Math.round(exp/budget*100)+'% terpakai':'—';
+ const q=$('search').value.toLowerCase().trim(),f=$('filter').value;
+ const shown=[...transactions].filter(t=>(f==='all'||t.type===f)&&(!q||(t.description+' '+t.category).toLowerCase().includes(q))).sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+ $('transactionList').innerHTML=shown.length?shown.map(t=>`<div class="transaction">
+  <div class="tx-icon">${t.type==='income'?'💵':'🛒'}</div>
+  <div class="tx-info"><div class="tx-title">${escapeHtml(t.description)}</div><div class="tx-sub">${escapeHtml(t.category)} • ${new Date(t.date+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}</div></div>
+  <div class="tx-right"><div class="tx-amount ${t.type==='income'?'income':'expense'}">${t.type==='income'?'+':'−'}${rupiah(t.amount)}</div><button class="btn-danger" type="button" data-delete="${t.id}" aria-label="Hapus transaksi">Hapus</button></div>
+ </div>`).join(''):'<div class="empty">Tidak ada transaksi yang cocok.</div>';
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+$('transactionForm').addEventListener('submit',e=>{
+ e.preventDefault();const amount=Number($('amount').value);
+ if(!Number.isFinite(amount)||amount<=0){alert('Masukkan jumlah yang valid.');return;}
+ transactions.push({id:Date.now()+Math.floor(Math.random()*1000),type:$('type').value,date:$('date').value,description:$('description').value.trim(),category:$('category').value,amount:Math.round(amount)});
+ save();$('description').value='';$('amount').value='';render();
+});
+$('transactionList').addEventListener('click',e=>{
+ const btn=e.target.closest('[data-delete]');if(!btn)return;
+ if(confirm('Hapus transaksi ini?')){transactions=transactions.filter(t=>String(t.id)!==btn.dataset.delete);save();render();}
+});
+$('search').addEventListener('input',render);$('filter').addEventListener('change',render);
+$('saveBudget').addEventListener('click',()=>{const n=Number($('budget').value);if(!Number.isFinite(n)||n<0){alert('Masukkan anggaran yang valid.');return;}budget=Math.round(n);localStorage.setItem(BUDGET_KEY,String(budget));render();});
+$('exportBtn').addEventListener('click',()=>{
+ if(!transactions.length){alert('Belum ada transaksi untuk diekspor.');return;}
+ const rows=[['Tanggal','Jenis','Keterangan','Kategori','Jumlah'],...transactions.map(t=>[t.date,t.type==='income'?'Pemasukan':'Pengeluaran',t.description,t.category,t.amount])];
+ const csv='\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n');
+ const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'})),a=document.createElement('a');a.href=url;a.download='laporan-keuangan.csv';a.click();URL.revokeObjectURL(url);
+});
+function setTheme(theme){document.documentElement.dataset.theme=theme;$('themeBtn').textContent=theme==='dark'?'☀️ Mode terang':'🌙 Mode gelap';localStorage.setItem(THEME_KEY,theme);}
+$('themeBtn').addEventListener('click',()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
+setTheme(localStorage.getItem(THEME_KEY)||'light');render();
+</script>
+</body>
+</html>
